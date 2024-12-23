@@ -63,7 +63,7 @@ def istResh(x, v0, sigma, alpha):
     TG = (np.tan(alpha_in_radians / 2)) ** 2
     numerator = -1.5 * np.sqrt(2 * g) * sigma * x
     denominator = TG * np.pi
-    U = ((numerator / denominator) + U_0) ** (2 / 5)
+    U = ((numerator / denominator) + U_0) ** (2 / 5) if ((numerator / denominator) + U_0)>0 else 0
     return U
 
 def bigAndHalfStepForRK4(x,v,h,sigma,alpha):
@@ -88,7 +88,7 @@ def methodRK4WithLocalErrorControl(S,epsilon,h):
 # Значения по умолчанию для каждого параметра
 default_values = {
     "sigma": 0.1,
-    "alpha": 30,
+    "alpha": 15,
     "x0": 0,
     "v0": 2,
     "h": 0.1,
@@ -139,7 +139,7 @@ entry_N.insert(0, str(default_values["maxN"]))
 label_N.grid(row=6, column=0, sticky="w", padx=5, pady=0)
 entry_N.grid(row=6, column=1, padx=5, pady=0)
 
-label_controlExit = tk.Label(frame3, text="Контроль выхода за правую границу", font=("Times New Roman", 10), bg="white")
+label_controlExit = tk.Label(frame3, text="Контроль выхода за нижнюю границу по v", font=("Times New Roman", 10), bg="white")
 entry_controlExit = tk.Entry(frame3, font=("Times New Roman", 10))
 entry_controlExit.insert(0, str(default_values["controlExit"]))  
 label_controlExit.grid(row=7, column=0, sticky="w", padx=5, pady=0)
@@ -225,6 +225,80 @@ frame3.grid_columnconfigure(2, weight=2)  # Даем вес 2 для колон�
 # ------------------------------------------------Построение графика-------------------------------------------------
 # ------------------------------------------------Заполнение таблицы-------------------------------------------------
 
+# ------------------------------------------------Справка-------------------------------------------------
+def update_labels(c1_max, c2_max, h_max, h_min, max_OLP, max_x, max_E, h_max_index, h_min_index, v_v22_max_index, E_max_index):
+    # Обновляем значения в лейблах справа от таблицы
+    label_c1_value.config(text=f"{c1_max}")
+    label_c2_value.config(text=f"{c2_max}")
+    label_h_max_value.config(text=f"{h_max:.5f}")
+    label_h_min_value.config(text=f"{h_min:.16f}")
+    label_max_OLP_value.config(text=f"{max_OLP:.5e}")
+    label_max_x_value.config(text=f"{max_x:.5f}")
+    label_max_E_value.config(text=f"{max_E:.6f}")
+    # Вывод шага
+    label_h_max_stepZN.config(text=f"{h_max_index}")
+    label_h_min_stepZN.config(text=f"{h_min_index}")
+    label_max_OLP_stepZN.config(text=f"{v_v22_max_index}")
+    label_max_E_stepZN.config(text=f"{E_max_index}")
+    
+
+
+# Лейблы для отображения чисел делений, удвоений, максимального и минимального шага и т.д.
+label_c1 = tk.Label(frame3, text="Число делений шага:", font=("Times New Roman", 12), bg="white")
+label_c1.grid(column=9, row=10, sticky="w", padx=0, pady=1)
+label_c1_value = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_c1_value.grid(column=10, row=10, sticky="w", padx=0, pady=1)
+
+label_c2 = tk.Label(frame3, text="Число удвоений шага:", font=("Times New Roman", 12), bg="white")
+label_c2.grid(column=9, row=11, sticky="w", padx=0, pady=1)
+label_c2_value = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_c2_value.grid(column=10, row=11, sticky="w", padx=0, pady=1)
+
+label_h_max = tk.Label(frame3, text="Максимальный шаг:", font=("Times New Roman", 12), bg="white")
+label_h_max.grid(column=9, row=12, sticky="w", padx=0, pady=1)
+label_h_max_value = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_h_max_value.grid(column=10, row=12, sticky="w", padx=0, pady=1)
+
+label_h_max_step = tk.Label(frame3, text="i=", font=("Times New Roman", 12), bg="white")
+label_h_max_step.grid(column=11, row=12, sticky="w", padx=0, pady=1)
+label_h_max_stepZN = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_h_max_stepZN.grid(column=12, row=12, sticky="w", padx=0, pady=1)
+
+label_h_min = tk.Label(frame3, text="Минимальный шаг:", font=("Times New Roman", 12), bg="white")
+label_h_min.grid(column=9, row=13, sticky="w", padx=0, pady=1)
+label_h_min_value = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_h_min_value.grid(column=10, row=13, sticky="w", padx=0, pady=1)
+
+label_h_min_step = tk.Label(frame3, text="i=", font=("Times New Roman", 12), bg="white")
+label_h_min_step.grid(column=11, row=13, sticky="w", padx=0, pady=1)
+label_h_min_stepZN = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_h_min_stepZN.grid(column=12, row=13, sticky="w", padx=0, pady=1)
+
+label_max_OLP = tk.Label(frame3, text="Максимальный |v-v2i| :", font=("Times New Roman", 12), bg="white")
+label_max_OLP.grid(column=9, row=14, sticky="w", padx=0, pady=1)
+label_max_OLP_value = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_max_OLP_value.grid(column=10, row=14, sticky="w", padx=0, pady=1)
+
+label_max_OLP_step = tk.Label(frame3, text="i=", font=("Times New Roman", 12), bg="white")
+label_max_OLP_step.grid(column=11, row=14, sticky="w", padx=0, pady=1)
+label_max_OLP_stepZN = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_max_OLP_stepZN.grid(column=12, row=14, sticky="w", padx=0, pady=1)
+
+label_max_E = tk.Label(frame3, text="Максимальная глобальная погрешность:", font=("Times New Roman", 12), bg="white")
+label_max_E.grid(column=9, row=15, sticky="w", padx=0, pady=1)
+label_max_E_value = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_max_E_value.grid(column=10, row=15, sticky="w", padx=0, pady=1)
+
+label_max_E_step = tk.Label(frame3, text="i=", font=("Times New Roman", 12), bg="white")
+label_max_E_step.grid(column=11, row=15, sticky="w", padx=0, pady=1)
+label_max_E_stepZN = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_max_E_stepZN.grid(column=12, row=15, sticky="w", padx=0, pady=1)
+
+label_max_x = tk.Label(frame3, text="Время вытекания жидкости:", font=("Times New Roman", 12), bg="white")
+label_max_x.grid(column=9, row=16, sticky="w", padx=0, pady=1)
+label_max_x_value = tk.Label(frame3, text="0", font=("Times New Roman", 12), bg="white", fg="blue")
+label_max_x_value.grid(column=10, row=16, sticky="w", padx=0, pady=1)
+
 def calculate():
     try:
         # Очищаем таблицу
@@ -250,23 +324,20 @@ def calculate():
         u0 = v0  # Начальное значение для u0
         v = v0
         x = x0
-        # начальные значения для c1 и c2
-        c1 = 0
-        c2 = 0
-
-        SW=0
+        c1 = 0  # Число делений шага
+        c2 = 0  # Число удвоений шага
 
         # Создаем списки для хранения данных
-        i_values=[]
+        i_values = []
         xi_values = []
         vi_values = []
-        v2_values=[]
-        h_values=[]
-        v_v22_values=[]
-        c1_values=[]
-        c2_values=[]
+        v2_values = []
+        h_values = []
+        v_v22_values = []
+        c1_values = []
+        c2_values = []
         ui_values = []
-        Ei_values = []
+        E_values = []
 
         for i in range(maxN + 1):
             # Расчет нового значения для v с использованием метода Рунге-Кутты
@@ -275,81 +346,82 @@ def calculate():
             v22 = bigAndHalfStepForRK4(x + h / 2, v12, h / 2, sigma, alpha)
             S = abs(V - v22) / 15
             control = methodRK4WithLocalErrorControl(S, epsilon, h)
-            if control == 0:  # делим шаг
+
+            if control == 0:  # Делим шаг
                 while control == 0:
                     h = h / 2
                     v12 = bigAndHalfStepForRK4(x, v, h / 2, sigma, alpha)
                     v22 = bigAndHalfStepForRK4(x + h / 2, v12, h / 2, sigma, alpha)
                     V = bigAndHalfStepForRK4(x, v, h, sigma, alpha)
-                    x = x + h
                     S = abs(V - v22) / 15
-                    SW=S*16
                     control = methodRK4WithLocalErrorControl(S, epsilon, h)
-                    c1 +=1 # увеличиваем счетчик деления шага
-                    print("Поделил шаг")
-                    S = abs(V - v22) / 15#ВОТ ТУТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТТт
-                    SW=S*16   
-            elif control == 2:  # удваиваем шаг
-                v12 = bigAndHalfStepForRK4(x, v, h / 2, sigma, alpha)
-                v22 = bigAndHalfStepForRK4(x + h / 2, v12, h / 2, sigma, alpha)
-                h =2.0*h
-                v = V  # обновляем значение v
-                x = x + h
-                S = abs(V - v22) / 15
-                SW=S*16 
-                c2 +=1  # увеличиваем счетчик удвоения шага
-                print("Удвоил шаг")
-            elif control==1:  # не меняем шаг
-                v = V  # обновляем значение v
-                h=h
-                x = x + h
-                S = abs(V - v22) / 15
-                SW=S*16 
+                    c1 += 1  # Увеличиваем счетчик деления шага
+            elif control == 2:  # Удваиваем шаг
+                h = 2.0 * h
+                v = V
+                x += h
+                c2 += 1  # Увеличиваем счетчик удвоения шага
+            else:  # Не меняем шаг
+                v = V
+                x += h
+
             # Вычисляем аналитическое решение
             u = istResh(x, u0, sigma, alpha)
             E = abs(u - v)
+
             # Добавляем данные в таблицу
             treeview.insert("", "end", values=(
                 f"{i}",
                 f"{x:.10f}",
                 f"{v:.16f}",
-                f"{v22:.16f}",  
+                f"{v22:.16f}",
                 f"{h:.16f}",
-                f"{SW:.20f}",
+                f"{S:.20f}",
                 f"{c1}",
                 f"{c2}",
                 f"{u:.20f}",
                 f"{E:.20f}"
             ))
 
-            # Добавляем значения в списки для графика
+            # Сохраняем данные в списки
             i_values.append(i)
             xi_values.append(x)
             vi_values.append(v)
             v2_values.append(v22)
             h_values.append(h)
-            v_v22_values.append(SW)
+            v_v22_values.append(S)
             c1_values.append(c1)
             c2_values.append(c2)
             ui_values.append(u)
-            Ei_values.append(E)
+            E_values.append(E)
 
-            # Выход из цикла, если vi меньше controlExit
-            if (v <= controlExit) or (i>=maxN) or (v<0) or (v22<0):
-               break
+            # Выход из цикла, если выполнено условие
+            if (v <= controlExit) or (i >= maxN) or (v < 0) or (v22 < 0):
+                break
+
+        # Индексы для максимальных/минимальных значений
+        h_max_index = h_values.index(max(h_values))
+        h_min_index = h_values.index(min(h_values))
+        v_v22_max_index = v_v22_values.index(max(v_v22_values))
+        E_max_index = E_values.index(max(E_values))
 
         # Строим график
         plot_graph(xi_values, vi_values, ui_values)
-    
+
+        # Обновляем лейблы
+        update_labels(
+            max(c1_values), max(c2_values), max(h_values), min(h_values),
+            max(v_v22_values), max(xi_values), max(E_values),
+            h_max_index, h_min_index, v_v22_max_index, E_max_index
+        )
+
     except ValueError:
         print("Ошибка: Пожалуйста, убедитесь, что все поля заполнены корректно.")
-
-                
 # ------------------------------------------------Заполнение таблицы-------------------------------------------------
 # ------------------------------------------------Кнопка-------------------------------------------------
 # кнопка для запуска вычислений
 button_calculate = tk.Button(frame3, text="Начать расчёт", font=("Times New Roman", 10), command=calculate)
-button_calculate.grid(row=8, column=4, columnspan=1, pady=10)
+button_calculate.grid(row=8, column=3, columnspan=1, pady=10)
 # ------------------------------------------------Кнопка-------------------------------------------------
 
 
